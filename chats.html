@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Chat & Community Subscription</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    header {
+      background-color: #4caf50;
+      color: white;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    section {
+      margin-bottom: 2rem;
+    }
+    h2 {
+      color: #4caf50;
+      font-size: 1.5rem;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      background: #4caf50;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .message-box {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+    .chat-log {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+      background: #fff;
+    }
+    .success-message {
+      color: green;
+    }
+    .error-message {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <header>Real-Time Chat & Community Subscription</header>
+  
+  <div class="container">
+    <!-- WebSocket Connection Status -->
+    <p id="connectionStatus">Connecting to WebSocket...</p>
+
+    <!-- Chat Section -->
+    <section id="chatSection">
+      <h2>Chat Room</h2>
+      <input type="text" id="chatRoomId" placeholder="Chat Room ID (e.g., room1)">
+      <input type="text" id="senderName" placeholder="Your Name">
+      <textarea id="messageText" placeholder="Type your message"></textarea>
+      <button id="sendMessage">Send Message</button>
+      <p id="chatResponse"></p>
+      <div class="chat-log" id="chatLog"></div>
+    </section>
+
+    <!-- Subscribe to Community -->
+    <section id="subscribeCommunitySection">
+      <h2>Subscribe to a Community</h2>
+      <input type="text" id="userId" placeholder="Your User ID">
+      <input type="text" id="communityId" placeholder="Community ID">
+      <button id="subscribeCommunity">Subscribe</button>
+      <p id="subscribeResponse"></p>
+    </section>
+  </div>
+
+  <script>
+    // WebSocket Connection
+    const websocket = new WebSocket("wss://4v0tsfgv53.execute-api.ap-south-1.amazonaws.com/demo/");
+
+    // WebSocket Event Listeners
+    websocket.onopen = () => {
+      document.getElementById("connectionStatus").textContent = "Connected to WebSocket!";
+      document.getElementById("connectionStatus").style.color = "green";
+    };
+
+    websocket.onerror = (error) => {
+      console.error("WebSocket Error:", error);
+      document.getElementById("connectionStatus").textContent = "WebSocket Error!";
+      document.getElementById("connectionStatus").style.color = "red";
+    };
+
+    websocket.onmessage = (event) => {
+      const response = JSON.parse(event.data);
+      console.log("Received message:", response);
+
+      if (response.chatRoomId) {
+        const chatLog = document.getElementById("chatLog");
+        const messageElement = document.createElement("div");
+        messageElement.className = "message-box";
+        messageElement.innerHTML = `<strong>${response.senderName}:</strong> ${response.message} <br><small>${new Date().toLocaleTimeString()}</small>`;
+        chatLog.appendChild(messageElement);
+        chatLog.scrollTop = chatLog.scrollHeight;
+      } else if (response.message) {
+        document.getElementById("subscribeResponse").textContent = response.message;
+        document.getElementById("subscribeResponse").className = "success-message";
+      }
+    };
+
+    // Send Message Function
+    document.getElementById("sendMessage").addEventListener("click", () => {
+      const chatRoomId = document.getElementById("chatRoomId").value.trim();
+      const senderName = document.getElementById("senderName").value.trim();
+      const message = document.getElementById("messageText").value.trim();
+
+      if (!chatRoomId || !senderName || !message) {
+        document.getElementById("chatResponse").textContent = "All fields are required!";
+        document.getElementById("chatResponse").className = "error-message";
+        return;
+      }
+
+      const payload = {
+        action: "sendMessage",
+        chatRoomId: chatRoomId,
+        senderName: senderName,
+        message: message,
+        "$request": { "header": { "x-api-key": "false" } }
+      };
+
+      websocket.send(JSON.stringify(payload));
+      document.getElementById("chatResponse").textContent = "Message sent!";
+      document.getElementById("chatResponse").className = "success-message";
+      document.getElementById("messageText").value = "";
+    });
+
+    // Subscribe to Community Function
+    document.getElementById("subscribeCommunity").addEventListener("click", () => {
+      const userId = document.getElementById("userId").value.trim();
+      const communityId = document.getElementById("communityId").value.trim();
+
+      if (!userId || !communityId) {
+        document.getElementById("subscribeResponse").textContent = "Both fields are required!";
+        document.getElementById("subscribeResponse").className = "error-message";
+        return;
+      }
+
+      const payload = {
+        action: "subscribeToCommunity",
+        userId: userId,
+        communityId: communityId,
+        "$request": { "header": { "x-api-key": "false" } }
+      };
+
+      websocket.send(JSON.stringify(payload));
+      document.getElementById("subscribeResponse").textContent = "Subscription request sent!";
+      document.getElementById("subscribeResponse").className = "success-message";
+    });
+  </script>
+  <script src = "auth.js"></script>
+</body>
+</html>

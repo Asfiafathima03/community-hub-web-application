@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Communities</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #e0f7fa, #80deea);
+      color: #333;
+      text-align: center;
+    }
+    header {
+      background-color: #006064;
+      color: white;
+      padding: 15px 0;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    button {
+      padding: 10px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    button.add {
+      background-color: #009688;
+      color: white;
+    }
+    button.add:hover {
+      background-color: #00796b;
+      transform: translateY(-2px);
+    }
+    button.delete {
+      background-color: #e53935;
+      color: white;
+    }
+    button.delete:hover {
+      background-color: #b71c1c;
+      transform: translateY(-2px);
+    }
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      padding: 20px;
+    }
+    section {
+      display: none;
+      animation: fadeIn 0.5s ease-out;
+    }
+    section.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    input, textarea {
+      width: 90%;
+      padding: 10px;
+      margin: 10px auto;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+      display: block;
+    }
+    textarea {
+      resize: vertical;
+    }
+    .response-message {
+      margin-top: 10px;
+      font-size: 0.95em;
+      color: red;
+      text-align: left;
+    }
+    pre {
+      text-align: left;
+      background: #f7f7f7;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.95em;
+    }
+  </style>
+</head>
+<body>
+  <header>Community Management</header>
+  <nav>
+    <button class="add" onclick="showSection('addCommunitySection')">Add Community</button>
+    <button class="add" onclick="showSection('getCommunitySection')">Get Community</button>
+    <button class="delete" onclick="showSection('deleteCommunitySection')">Delete Community</button>
+  </nav>
+  <div class="container">
+    <!-- Add Community Section -->
+    <section id="addCommunitySection">
+      <h2>Add Community</h2>
+      <input type="text" id="addCommunityId" placeholder="Community ID">
+      <input type="text" id="addName" placeholder="Community Name">
+      <textarea id="addDescription" placeholder="Community Description"></textarea>
+      <textarea id="addMembers" placeholder="Members (comma-separated)"></textarea>
+      <input type="text" id="addAdminId" placeholder="Admin ID">
+      <button class="add" id="addCommunity">Add Community</button>
+      <p class="response-message" id="addResponseMessage"></p>
+    </section>
+    <!-- Get Community Section -->
+    <section id="getCommunitySection">
+      <h2>Get Community</h2>
+      <input type="text" id="getCommunityId" placeholder="Community ID">
+      <button class="add" id="getCommunity">Get Community</button>
+      <pre id="getCommunityDetails"></pre>
+    </section>
+    <!-- Delete Community Section -->
+    <section id="deleteCommunitySection">
+      <h2>Delete Community</h2>
+      <input type="text" id="deleteCommunityId" placeholder="Community ID">
+      <button class="delete" id="deleteCommunity">Delete Community</button>
+      <p class="response-message" id="deleteResponseMessage"></p>
+    </section>
+  </div>
+
+  <script>
+    const API_URL = "https://h69hhuful5.execute-api.ap-south-1.amazonaws.com/prod/Community";
+  
+    function showSection(sectionId) {
+      document.querySelectorAll("section").forEach(section => section.classList.remove("active"));
+      document.getElementById(sectionId).classList.add("active");
+    }
+  
+    async function handleApiRequest(action, data, responseElementId) {
+      try {
+        const response = await fetch("https://h69hhuful5.execute-api.ap-south-1.amazonaws.com/prod/Community", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action, data })
+        });
+  
+        const result = await response.json();
+        document.getElementById(responseElementId).textContent = JSON.stringify(result, null, 2); // Show raw response
+      } catch (error) {
+        document.getElementById(responseElementId).textContent = "Error processing request. Please try again.";
+      }
+    }
+  
+    document.getElementById("addCommunity").addEventListener("click", () => {
+      const communityId = document.getElementById("addCommunityId").value.trim();
+      const name = document.getElementById("addName").value.trim();
+      const description = document.getElementById("addDescription").value.trim();
+      const membersInput = document.getElementById("addMembers").value.trim();
+      const adminId = document.getElementById("addAdminId").value.trim();
+  
+      const members = membersInput ? membersInput.split(",").map(member => member.trim()) : [];
+  
+      if (!communityId || !name || !adminId) {
+        document.getElementById("addResponseMessage").textContent = "Community ID, Name, and Admin ID are required.";
+        return;
+      }
+  
+      handleApiRequest("addCommunity", { communityId, name, description, members, adminId }, "addResponseMessage");
+    });
+  
+    document.getElementById("getCommunity").addEventListener("click", () => {
+      const communityId = document.getElementById("getCommunityId").value.trim();
+  
+      if (!communityId) {
+        document.getElementById("getCommunityDetails").textContent = "Community ID is required.";
+        return;
+      }
+  
+      handleApiRequest("getCommunity", { communityId }, "getCommunityDetails");
+    });
+  
+    document.getElementById("deleteCommunity").addEventListener("click", () => {
+      const communityId = document.getElementById("deleteCommunityId").value.trim();
+  
+      if (!communityId) {
+        document.getElementById("deleteResponseMessage").textContent = "Community ID is required.";
+        return;
+      }
+  
+      handleApiRequest("deleteCommunity", { communityId }, "deleteResponseMessage");
+    });
+  
+    if (!sessionStorage.getItem("AuthToken")) {
+      alert("Session expired or not authenticated. Redirecting to login.");
+      window.location.href = "index.html";
+    }
+  </script>
+  
+  <script src="auth.js"></script>
+</body>
+</html>

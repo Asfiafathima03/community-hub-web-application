@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome To Community Hub</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      background: linear-gradient(to bottom, #ff7e5f, #feb47b);
+      color: #fff;
+    }
+    .container {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      color: #333;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button#loginButton {
+      background-color: #007bff;
+      color: white;
+    }
+    button#loginButton:hover {
+      background-color: #0056b3;
+    }
+    button#registerButton {
+      background-color: #28a745;
+      color: white;
+    }
+    button#registerButton:hover {
+      background-color: #218838;
+    }
+    .message {
+      color: red;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome To Community Hub</h1>
+    <div>
+      <input type="text" id="username" placeholder="Username">
+      <input type="password" id="password" placeholder="Password">
+      <button id="loginButton">Login</button>
+      <button id="registerButton">Register</button>
+      <p class="message" id="responseMessage"></p>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://h69hhuful5.execute-api.ap-south-1.amazonaws.com/prod/Community"; // Replace with your API Gateway URL
+
+    // Event listener for login
+    document.getElementById("loginButton").addEventListener("click", async () => {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      if (!username || !password) {
+        displayMessage("Please enter both username and password.");
+        return;
+      }
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "login", data: { username, password } }),
+        });
+        const result = await response.json();
+        if (result.authenticated) { // Check for the 'authenticated' flag
+          sessionStorage.setItem("AuthToken", result.token); // Store the token
+          window.location.href = "Home.html"; // Redirect to home page
+        } else {
+          displayMessage(result.message || "Login failed.");
+        }
+      } catch (error) {
+        displayMessage("An error occurred. Please try again.");
+      }
+    });
+
+    // Event listener for register
+    document.getElementById("registerButton").addEventListener("click", async () => {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      if (!username || !password) {
+        displayMessage("Please enter both username and password.");
+        return;
+      }
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "register", data: { username, password } }),
+        });
+        const result = await response.json();
+        if (response.ok) {
+          displayMessage("Registration successful! You can now login.");
+        } else {
+          displayMessage(result.message || "Registration failed.");
+        }
+      } catch (error) {
+        displayMessage("An error occurred. Please try again.");
+      }
+    });
+
+    function displayMessage(message) {
+      document.getElementById("responseMessage").textContent = message;
+    }
+  </script>
+</body>
+</html>

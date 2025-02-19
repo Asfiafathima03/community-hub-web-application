@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #eef2f7;
+      color: #333;
+      text-align: center;
+    }
+    header {
+      background-color: #4a90e2;
+      color: white;
+      padding: 20px;
+      font-size: 2em;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+    }
+    h2 {
+      color: #4a90e2;
+      margin-bottom: 20px;
+    }
+    input, textarea {
+      width: 90%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      padding: 12px 25px;
+      margin: 10px 5px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+    }
+    .add {
+      background-color: #4a90e2;
+      color: white;
+    }
+    .add:hover {
+      background-color: #357ab8;
+    }
+    .get {
+      background-color: #27ae60;
+      color: white;
+    }
+    .get:hover {
+      background-color: #1f8b4c;
+    }
+    .delete {
+      background-color: #e74c3c;
+      color: white;
+    }
+    .delete:hover {
+      background-color: #c0392b;
+    }
+    pre {
+      text-align: left;
+      margin: 20px auto;
+      padding: 15px;
+      background: #f4f4f4;
+      border-radius: 8px;
+      font-size: 0.9em;
+      overflow-x: auto;
+    }
+    .response-message {
+      margin-top: 10px;
+      font-size: 0.95em;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <header>User Management</header>
+  <div class="container">
+    <!-- Add User Profile Section -->
+    <section>
+      <h2>Add User Profile</h2>
+      <input type="text" id="addUserId" placeholder="User ID" required>
+      <input type="text" id="name" placeholder="Name" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <textarea id="hobbies" placeholder="Enter hobbies (comma-separated)" required></textarea>
+      <input type="text" id="profilePicture" placeholder="Profile Picture URL">
+      <button class="add" id="addUserButton">Add User</button>
+      <p class="response-message" id="addUserResponse"></p>
+    </section>
+
+    <!-- Get User Section -->
+    <section>
+      <h2>Get User</h2>
+      <input type="text" id="getUserId" placeholder="User ID" required>
+      <button class="get" id="getUserButton">Get User</button>
+      <pre id="getUserResponse"></pre>
+    </section>
+
+    <!-- Delete User Section -->
+    <section>
+      <h2>Delete User</h2>
+      <input type="text" id="deleteUserId" placeholder="User ID" required>
+      <button class="delete" id="deleteUserButton">Delete User</button>
+      <p class="response-message" id="deleteUserResponse"></p>
+    </section>
+  </div>
+
+  <script>
+    const API_URL = "https://h69hhuful5.execute-api.ap-south-1.amazonaws.com/prod/Community";
+
+    function validateInput(inputId, errorMessageId, message) {
+      const value = document.getElementById(inputId).value.trim();
+      if (!value) {
+        document.getElementById(errorMessageId).textContent = message;
+        return null;
+      }
+      document.getElementById(errorMessageId).textContent = "";
+      return value;
+    }
+
+    async function handleApiRequest(action, data, responseElementId) {
+      try {
+        document.getElementById(responseElementId).textContent = "Loading...";
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action, data }),
+        });
+
+        const result = await response.json();
+        document.getElementById(responseElementId).textContent = result.message || JSON.stringify(result, null, 2);
+      } catch (error) {
+        document.getElementById(responseElementId).textContent = "Error processing request.";
+      }
+    }
+
+    document.getElementById("addUserButton").addEventListener("click", () => {
+      const userId = validateInput("addUserId", "addUserResponse", "User ID is required.");
+      const name = validateInput("name", "addUserResponse", "Name is required.");
+      const email = validateInput("email", "addUserResponse", "Valid email is required.");
+      const hobbies = document.getElementById("hobbies").value.split(",").map(hobby => hobby.trim());
+      const profilePicture = document.getElementById("profilePicture").value.trim();
+
+      if (userId && name && email) {
+        handleApiRequest("addUser", { userId, name, email, hobbies, profilePicture }, "addUserResponse");
+      }
+    });
+
+    document.getElementById("getUserButton").addEventListener("click", () => {
+      const userId = validateInput("getUserId", "getUserResponse", "User ID is required.");
+      if (userId) {
+        handleApiRequest("getUser", { userId }, "getUserResponse");
+      }
+    });
+
+    document.getElementById("deleteUserButton").addEventListener("click", () => {
+      const userId = validateInput("deleteUserId", "deleteUserResponse", "User ID is required.");
+      if (userId) {
+        handleApiRequest("deleteUser", { userId }, "deleteUserResponse");
+      }
+    });
+    if (!sessionStorage.getItem("AuthToken")) { // Use AuthToken for verification
+    window.location.href = "index.html";
+    }
+  </script>
+  <script src="auth.js"></script>
+</body>
+</html>

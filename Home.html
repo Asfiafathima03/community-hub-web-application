@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: #333;
+      text-align: center;
+    }
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 20px 0;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 50px auto 0;
+    }
+    .card {
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    .card button {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      font-size: 1em;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      width: 200px;
+    }
+    .card button:hover {
+      background-color: #0056b3;
+    }
+    .logout-btn {
+      display: block;
+      width: 200px;
+      margin: 30px auto;
+      padding: 15px 30px;
+      background-color: #dc3545;
+      color: white;
+      font-size: 16px;
+      text-align: center;
+      border-radius: 5px;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    .logout-btn:hover {
+      background-color: #b02a37;
+    }
+  </style>
+</head>
+<body>
+  <header>Welcome to the Dashboard!</header>
+
+  <div class="container">
+    <div class="card">
+      <h3>Communities</h3>
+      <button onclick="window.location.href='communities.html'">Go to Communities</button>
+    </div>
+    <div class="card">
+      <h3>Chats</h3>
+      <button onclick="window.location.href='chats.html'">Go to Chats</button>
+    </div>
+    <div class="card">
+      <h3>Users</h3>
+      <button onclick="window.location.href='users.html'">Go to Users</button>
+    </div>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">Logout</button>
+
+  <script>
+    // Check if user is logged in when the page loads
+    window.onload = function() {
+      if (!sessionStorage.getItem("AuthToken")) {
+        alert("Please log in to access the dashboard.");
+        window.location.href = "index.html";
+      }
+    };
+
+    // Logout function to clear AuthToken and redirect to login
+    function logout() {
+      sessionStorage.removeItem("AuthToken"); // Clear AuthToken
+      window.location.href = "index.html"; // Redirect to login page
+    }
+  </script>
+</body>
+</html>
